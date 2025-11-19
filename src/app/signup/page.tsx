@@ -38,19 +38,30 @@ export default function SignupPage() {
     }
 
     try {
+      // Cadastro com autoConfirm desabilitado (requer configuração no Supabase Dashboard)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
       })
 
       if (error) throw error
 
       if (data.user) {
-        setSuccess(true)
-        setTimeout(() => {
-          router.push('/')
-          router.refresh()
-        }, 2000)
+        // Verificar se o email foi confirmado automaticamente
+        if (data.user.confirmed_at || data.session) {
+          // Email confirmado automaticamente ou sessão criada
+          setSuccess(true)
+          setTimeout(() => {
+            router.push('/')
+            router.refresh()
+          }, 1500)
+        } else {
+          // Email precisa ser confirmado
+          setError('Verifique seu email para confirmar o cadastro antes de fazer login.')
+        }
       }
     } catch (error: any) {
       setError(error.message || 'Erro ao criar conta')
